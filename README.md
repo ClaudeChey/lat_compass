@@ -1,5 +1,4 @@
-
-![Screenshot](https://github.com/ClaudeChey/lat_compass/tree/main/images/screenshot.gif)
+<img src="https://raw.githubusercontent.com/ClaudeChey/lat_compass/main/images/screenshot.gif" width=200>
 
 
 # lat_compass
