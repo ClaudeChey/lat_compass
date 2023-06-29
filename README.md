@@ -3,17 +3,19 @@
 
 # lat_compass
 
-Compass plugin written in native code.
+[![pub package](https://img.shields.io/pub/v/lat_compass.svg)](https://pub.dartlang.org/packages/lat_compass)
 
-It provides true-north, magnetic-north and accuracy.
+A compass plugin written in native.
 
-See the example for more details.
+Provides true north, magnetic north, and accuracy.
+
+See the [example app](https://github.com/ClaudeChey/lat_compass/blob/main/example/lib/main.dart) for more details.
 
 ## Getting started
 
 ```yaml
 dependencies:
-  lat_compass: ^any
+  lat_compass: ^1.0.3
 ```
 
 ## Usage
