@@ -1,4 +1,11 @@
 
+
+
+## 1.0.3
+
+* Update README.md
+* Check location permissions while the app is running 
+
 ## 1.0.2
 
 * resize screenshot 

@@ -2,6 +2,7 @@ package com.lat.plugins.lat_compass
 
 import android.Manifest
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.hardware.Sensor
@@ -24,14 +25,19 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import androidx.annotation.RequiresPermission
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.PluginRegistry
 
 
 private const val LOCATION_UPDATES_MIN_TIME_MS = 1_000L
 private const val LOCATION_UPDATES_MIN_DISTANCE_M = 10.0f
 
 /** LatCompassPlugin */
-class LatCompassPlugin : FlutterPlugin, MethodCallHandler, StreamHandler {
+class LatCompassPlugin : FlutterPlugin, MethodCallHandler, StreamHandler, PluginRegistry.RequestPermissionsResultListener, ActivityAware {
     private val TAG = "LatCompass"
+
+    private var currentActivity: Activity? = null
 
     private lateinit var context: Context
     private lateinit var channel: MethodChannel
@@ -51,6 +57,47 @@ class LatCompassPlugin : FlutterPlugin, MethodCallHandler, StreamHandler {
     private val compassSensorEventListener = CompassSensorEventListener()
     private val compassLocationListener = CompassLocationListener()
 
+    private  fun log(value: String) {
+//        Log.d(TAG, value)
+    }
+
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        currentActivity = binding.activity
+        binding.addRequestPermissionsResultListener(this)
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        currentActivity = null
+    }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        currentActivity = binding.activity
+        binding.addRequestPermissionsResultListener(this)
+    }
+
+    override fun onDetachedFromActivity() {
+        currentActivity = null
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ): Boolean {
+        log( "onRequestPermissionsResult $requestCode, $permissions, $grantResults, ${permissions[0]}, ${grantResults[0]}")
+        if (requestCode == -1) return false
+        if (permissions.isEmpty()) return false
+        if (grantResults.isEmpty()) return false
+        if (checkCoarseLocationPermission()) {
+            log( "onRequestPermissionsResult: true")
+            registerCoarseLocationListener()
+            return true
+        }
+        log( "onRequestPermissionsResult: false")
+        return false
+    }
+
+
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "lat_compass/event")
         eventChannel.setStreamHandler(this)
@@ -61,28 +108,20 @@ class LatCompassPlugin : FlutterPlugin, MethodCallHandler, StreamHandler {
         context = flutterPluginBinding.applicationContext
         sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
+        log( "onMethodCall")
         result.notImplemented()
     }
+
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
         eventSink = events
         registerSensorListener()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (context.checkSelfPermission(ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) {
-//                Log.d(TAG, "Registered listener for location")
-                registerCoarseLocationListener()
-            }
-        } else {
-            if (PERMISSION_GRANTED == context.packageManager.checkPermission(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                context.packageName
-            )) {
-                registerCoarseLocationListener()
-            }
+        if (checkCoarseLocationPermission()) {
+            registerCoarseLocationListener()
         }
     }
 
@@ -98,12 +137,26 @@ class LatCompassPlugin : FlutterPlugin, MethodCallHandler, StreamHandler {
         eventChannel.setStreamHandler(null)
     }
 
+    private fun checkCoarseLocationPermission(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (context.checkSelfPermission(ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) {
+                return true
+            }
+        } else {
+            if (context.packageManager.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, context.packageName) == PERMISSION_GRANTED) {
+                return true
+            }
+        }
+        return false
+    }
+
     @RequiresPermission(value = ACCESS_COARSE_LOCATION)
     private fun registerCoarseLocationListener() {
+        log( "registerCoarseLocationListener")
         locationManager?.also { locationManager ->
             val criteria = getLocationManagerCriteria()
             val bestProvider = locationManager.getBestProvider(criteria, true)
-//            Log.d(TAG, "$bestProvider")
+            log( "bestProvider: $bestProvider")
 
             bestProvider?.also { provider ->
                 locationManager.requestLocationUpdates(
@@ -113,17 +166,17 @@ class LatCompassPlugin : FlutterPlugin, MethodCallHandler, StreamHandler {
                     compassLocationListener
                 )
             } ?: run {
-//                Log.w(TAG, "No LocationProvider available")
+                log( "No LocationProvider available")
             }
         } ?: run {
-//            Log.w(TAG, "LocationManager not present")
+            log( "LocationManager not present")
         }
     }
 
     private fun getLocationManagerCriteria(): Criteria {
         val criteria = Criteria()
         criteria.accuracy = Criteria.ACCURACY_COARSE
-        criteria.powerRequirement = Criteria.POWER_LOW
+        criteria.powerRequirement = Criteria.POWER_HIGH
         return criteria
     }
 
@@ -137,21 +190,21 @@ class LatCompassPlugin : FlutterPlugin, MethodCallHandler, StreamHandler {
                         SensorManager.SENSOR_DELAY_NORMAL
                     )
                     if (success) {
-//                        Log.d(TAG, "Registered listener for rotation vector sensor")
+                        log( "Registered listener for rotation vector sensor")
                     } else {
-//                        Log.w(TAG, "Could not enable rotation vector sensor")
+                        log( "Could not enable rotation vector sensor")
                     }
                 } ?: run {
-//                Log.w(TAG, "Rotation vector sensor not available")
+                log("Rotation vector sensor not available")
             }
         } ?: run {
-//            Log.w(TAG, "SensorManager not present")
+            log( "SensorManager not present")
         }
     }
 
     private inner class CompassLocationListener : LocationListener {
         override fun onLocationChanged(loc: Location) {
-//            Log.v(TAG, "Location changed to $loc")
+            log("Location changed to $loc")
             location = loc
         }
     }
@@ -161,7 +214,7 @@ class LatCompassPlugin : FlutterPlugin, MethodCallHandler, StreamHandler {
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
             when (sensor.type) {
                 Sensor.TYPE_ROTATION_VECTOR -> setSensorAccuracy(accuracy)
-                else -> Log.w(TAG, "Unexpected accuracy changed event of type ${sensor.type}")
+                else -> log("Unexpected accuracy changed event of type ${sensor.type}")
             }
         }
 
@@ -177,7 +230,7 @@ class LatCompassPlugin : FlutterPlugin, MethodCallHandler, StreamHandler {
 //                SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM -> SensorAccuracy.MEDIUM
 //                SensorManager.SENSOR_STATUS_ACCURACY_HIGH -> SensorAccuracy.HIGH
 //                else -> {
-//                    Log.w(TAG, "Encountered unexpected sensor accuracy value '$accuracy'")
+//                    log("Encountered unexpected sensor accuracy value '$accuracy'")
 //                    SensorAccuracy.NO_CONTACT
 //                }
 //            }
@@ -186,7 +239,7 @@ class LatCompassPlugin : FlutterPlugin, MethodCallHandler, StreamHandler {
         override fun onSensorChanged(event: SensorEvent) {
             when (event.sensor.type) {
                 Sensor.TYPE_ROTATION_VECTOR -> updateCompass(event)
-                else -> Log.w(TAG, "Unexpected sensor changed event of type ${event.sensor.type}")
+                else -> log( "Unexpected sensor changed event of type ${event.sensor.type}")
             }
         }
 
@@ -212,7 +265,7 @@ class LatCompassPlugin : FlutterPlugin, MethodCallHandler, StreamHandler {
                 eventSink?.success(data)
             }
 
-//            Log.i(TAG, "${magneticAzimuth!!.roundedDegrees} ${trueAzimuth?.roundedDegrees} $azimuthAccuracy ")
+//            log( "${magneticAzimuth!!.roundedDegrees} ${trueAzimuth?.roundedDegrees} $azimuthAccuracy ")
         }
 
         private fun getMagneticDeclination(): Float {
@@ -221,5 +274,7 @@ class LatCompassPlugin : FlutterPlugin, MethodCallHandler, StreamHandler {
                 ?: 0.0f
         }
     }
+
+
 
 }

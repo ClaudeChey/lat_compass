@@ -3,11 +3,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:lat_compass/lat_compass.dart';
 import 'dart:math' as math;
 
 import 'package:lat_compass_example/tween_rotation_degree.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -87,17 +87,6 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Lat Compass example app'),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                await Geolocator.requestPermission();
-              },
-              child: const Icon(
-                Icons.gps_fixed,
-                color: Colors.white,
-              ),
-            ),
-          ],
         ),
         body: Center(
           child: Column(
@@ -120,10 +109,38 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                 'Accuracy: ${_compassEvent?.accuracy}',
                 textAlign: TextAlign.center,
               ),
+              if (Platform.isAndroid) _buildLocationPermission(context)
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLocationPermission(BuildContext context) {
+    return FutureBuilder(
+      future: Permission.location.status,
+      builder: (context, snapshot) {
+        final status = snapshot.data;
+
+        if (status == PermissionStatus.denied) {
+          return ElevatedButton(
+            onPressed: () async {
+              await Permission.location.request();
+              setState(() {});
+            },
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.gps_fixed),
+                SizedBox(width: 8),
+                Text('Request location permission'),
+              ],
+            ),
+          );
+        }
+        return Text('Location permission: $status');
+      },
     );
   }
 }
