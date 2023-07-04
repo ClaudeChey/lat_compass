@@ -16,7 +16,7 @@ See the [example app](https://github.com/ClaudeChey/lat_compass/blob/main/exampl
 
 ```yaml
 dependencies:
-  lat_compass: ^1.0.3
+  lat_compass: ^1.0.4
 ```
 
 
