@@ -256,10 +256,11 @@ class LatCompassPlugin : FlutterPlugin, MethodCallHandler, StreamHandler, Plugin
             trueAzimuth = magneticAzimuth!!.plus(magneticDeclination)
 
             if (magneticAzimuth != null) {
-                val m = magneticAzimuth!!.roundedDegrees.toDouble()
-                val t = trueAzimuth!!.roundedDegrees.toDouble()
+                val m = magneticAzimuth!!.degrees.toDouble()
+                val t = trueAzimuth!!.degrees.toDouble()
                 val a = azimuthAccuracy?.toDouble() ?: -1.0
                 val data = listOf(m, t, a)
+
                 if (latestData == data) return;
                 latestData = data
                 eventSink?.success(data)

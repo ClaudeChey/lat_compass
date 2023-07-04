@@ -1,6 +1,10 @@
 
 
 
+## 1.0.4
+
+* [Android] Fixed issue with heading result is not exact double
+
 ## 1.0.3
 
 * Update README.md

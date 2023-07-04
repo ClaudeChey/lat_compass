@@ -20,7 +20,7 @@ dependencies:
 ```
 
 
-### Android
+## Android
 For Android, you need to have location information to calculate true north
 
 Use an external plugin like [Permission_handler](https://pub.dev/packages/permission_handler)  to request location permission
