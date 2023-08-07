@@ -63,7 +63,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
       setState(() {});
     });
 
-    _subscription = LatCompass().stream?.listen((event) {
+    _subscription = LatCompass().onUpdate.listen((event) {
       if (Platform.isIOS) {
         _radian = degToRad(event.magneticHeading % 360) * -1;
         setState(() {});

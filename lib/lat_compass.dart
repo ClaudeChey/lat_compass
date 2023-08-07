@@ -24,7 +24,7 @@ class LatCompass {
   static const EventChannel _eventChannel = EventChannel('lat_compass/event');
   Stream<CompassEvent>? _stream;
 
-  Stream<CompassEvent>? get stream {
+  Stream<CompassEvent> get onUpdate {
     _stream ??= _eventChannel.receiveBroadcastStream().map((dynamic raw) {
       final data = raw as List;
       final magneticHeading = data[0];
@@ -35,7 +35,6 @@ class LatCompass {
           trueHeading: trueHeading,
           accuracy: accuracy);
     });
-
-    return _stream;
+    return _stream!;
   }
 }

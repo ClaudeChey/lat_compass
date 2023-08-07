@@ -1,5 +1,11 @@
 
 
+
+## 1.1.0
+
+* Change nullable stream to non-nullable
+* Change stream to onUpdate 
+
 ## 1.0.4+1
 
 * Update README.md

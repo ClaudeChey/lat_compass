@@ -16,7 +16,7 @@ See the [example app](https://github.com/ClaudeChey/lat_compass/blob/main/exampl
 
 ```yaml
 dependencies:
-  lat_compass: ^1.0.4+1
+  lat_compass: ^1.1.0
 ```
 
 
@@ -32,9 +32,9 @@ The plugin will get the location permission on its own and stream the true north
 
 ## Usage
 ```dart
-LatCompass().stream?.listen((event) {
-  event?.magneticHeading;
-  event?.trueHeading;
-  event?.accuracy;
+LatCompass().onUpdate.listen((event) {
+  event.magneticHeading;
+  event.trueHeading;
+  event.accuracy;
 })
 ```
