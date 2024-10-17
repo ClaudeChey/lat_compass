@@ -1,6 +1,6 @@
 name: lat_compass
 description: A compass plugin written in native code that provides true north, magnetic north, and accuracy.
-version: 1.1.0
+version: 1.1.1
 repository: https://github.com/ClaudeChey/lat_compass
 
 environment:
