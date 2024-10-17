@@ -119,9 +119,12 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
 
   Widget _buildLocationPermission(BuildContext context) {
     return FutureBuilder(
-      future: Permission.location.status,
+      future: Permission.locationWhenInUse.status,
       builder: (context, snapshot) {
         final status = snapshot.data;
+        if (status == PermissionStatus.permanentlyDenied) {
+          return Text('Please allow location in settings');
+        }
 
         if (status == PermissionStatus.denied) {
           return ElevatedButton(

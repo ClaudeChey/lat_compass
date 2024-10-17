@@ -1,11 +1,10 @@
 name: lat_compass
 description: A compass plugin written in native code that provides true north, magnetic north, and accuracy.
 version: 1.1.0
-homepage: https://latlonele-prod.web.app
 repository: https://github.com/ClaudeChey/lat_compass
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ^3.5.3
   flutter: ">=3.3.0"
 
 dependencies:
@@ -16,10 +15,10 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.2
+  flutter_lints: ^4.0.0
 
 screenshots:
-  - description: 'Compass example'
+  - description: "Compass example"
     path: images/screenshot.gif
 
 # For information on the generic Dart part of this file, see the
@@ -51,10 +50,10 @@ flutter:
   #   - images/a_dot_ham.jpeg
   #
   # For details regarding assets in packages, see
-  # https://flutter.dev/assets-and-images/#from-packages
+  # https://flutter.dev/to/asset-from-package
   #
   # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/assets-and-images/#resolution-aware
+  # https://flutter.dev/to/resolution-aware-images
 
   # To add custom fonts to your plugin package, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
@@ -74,4 +73,4 @@ flutter:
   #         weight: 700
   #
   # For details regarding fonts in packages, see
-  # https://flutter.dev/custom-fonts/#from-packages
+  # https://flutter.dev/to/font-from-package
